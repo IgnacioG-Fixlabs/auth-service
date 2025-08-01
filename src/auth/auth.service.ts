@@ -15,7 +15,6 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     // 1. Pedir al servicio de usuarios que nos devuelva el usuario por email
     const user = await lastValueFrom(this.usersClient.send({ cmd: 'get_user_by_email' }, { email }));
-
     if (user && await bcrypt.compare(pass, user.password)) {
       const { password,...result } = user;
       return result;

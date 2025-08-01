@@ -1,12 +1,17 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {Injectable, Logger, OnModuleInit} from '@nestjs/common';
 import vault from 'node-vault';
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
+  private readonly logger = new Logger(ConfigService.name);
   private vaultClient: vault.client;
   private secrets: Record<string, any> = {};
 
   constructor() {
+    if (!process.env.VAULT_ADDR ||!process.env.VAULT_TOKEN) {
+      this.logger.error('VAULT_ADDR and VAULT_TOKEN environment variables must be set.');
+      throw new Error('Vault configuration is missing.');
+    }
     this.vaultClient = vault({
       apiVersion: 'v1',
       endpoint: process.env.VAULT_ADDR,
@@ -25,7 +30,7 @@ export class ConfigService implements OnModuleInit {
       console.log('Secrets loaded successfully from Vault.');
     } catch (error) {
       console.error('Failed to load secrets from Vault:', error);
-      process.exit(1); // Detener la app si no se pueden cargar los secretos
+      process.exit(1);
     }
   }
 
@@ -34,7 +39,11 @@ export class ConfigService implements OnModuleInit {
   }
 
   getJwtSecret(): string {
-    return this.secrets.JWT_SECRET;
+    const secret = this.get('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET not found in Vault or environment variables.');
+    }
+    return secret;
   }
 
   getDatabaseUrl(): string {
@@ -44,5 +53,12 @@ export class ConfigService implements OnModuleInit {
     const dbHost = this.get('POSTGRES_HOST') || 'postgres-db';
     const dbPort = this.get('POSTGRES_PORT') || 5432;
     return `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
+  }
+  getTransportUrl(): string {
+    const rabbitmqUri = this.get('RABBITMQ_URI');
+    if (!rabbitmqUri) {
+      throw new Error('RABBITMQ_URI not found in Vault or environment variables.');
+    }
+    return rabbitmqUri;
   }
 }

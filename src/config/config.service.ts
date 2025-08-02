@@ -1,4 +1,4 @@
-import {Injectable, Logger, OnModuleInit} from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import vault from 'node-vault';
 
 @Injectable()
@@ -8,8 +8,10 @@ export class ConfigService implements OnModuleInit {
   private secrets: Record<string, any> = {};
 
   constructor() {
-    if (!process.env.VAULT_ADDR ||!process.env.VAULT_TOKEN) {
-      this.logger.error('VAULT_ADDR and VAULT_TOKEN environment variables must be set.');
+    if (!process.env.VAULT_ADDR || !process.env.VAULT_TOKEN) {
+      this.logger.error(
+        'VAULT_ADDR and VAULT_TOKEN environment variables must be set.',
+      );
       throw new Error('Vault configuration is missing.');
     }
     this.vaultClient = vault({

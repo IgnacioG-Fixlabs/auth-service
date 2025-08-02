@@ -12,11 +12,8 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 FROM base AS build
 COPY pnpm-lock.yaml package.json ./
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile \
-
+    pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm install -g @nestjs/cli
-
 RUN pnpm run build
 # ---- Etapa de Producción ----
 FROM base AS production
